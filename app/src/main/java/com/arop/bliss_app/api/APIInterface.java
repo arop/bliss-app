@@ -8,6 +8,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 /**
  * Created by andre on 25/07/2017.
@@ -25,10 +26,14 @@ public interface APIInterface {
      * Get all questions
      * URL: base + /questions?limit&offset&filter
      */
-    @GET("/questions?{limit}&{offset}&{filter}")
-    Call<List<Question>> getQuestions(@Path("limit") int limit, @Path("offset") int offset, @Path("filter") String filter);
+    @GET("/questions")
+    Call<List<Question>> getQuestions(@Query("limit") int limit, @Query("offset") int offset, @Query("filter") String filter);
 
-    @GET("/questions?{id}")
+    /**
+     * Get single question
+     * @param id question id
+     */
+    @GET("/questions/{id}")
     Call<Question> getQuestion(@Path("id") int id);
 
 }

@@ -3,6 +3,7 @@ package com.arop.bliss_app.apiObjects;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by andre on 25/07/2017.
@@ -20,9 +21,8 @@ public class Question {
     @SerializedName("published_at")
     private String date;
     @SerializedName("choices")
-    private ArrayList<QuestionChoice> choices;
+    private List<QuestionChoice> choices;
 
-    public Question() {}
     public Question(int id, String img, String thumb, String qt, String d) {
         this.id = id;
         image_url = img;
@@ -52,46 +52,26 @@ public class Question {
         return image_url;
     }
 
-    public void setImage_url(String image_url) {
-        this.image_url = image_url;
-    }
-
     public String getThumb_url() {
         return thumb_url;
-    }
-
-    public void setThumb_url(String thumb_url) {
-        this.thumb_url = thumb_url;
     }
 
     public String getQuestion() {
         return question;
     }
 
-    public void setQuestion(String question) {
-        this.question = question;
-    }
-
     public String getDate() {
         return date;
     }
 
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public ArrayList<QuestionChoice> getChoices() {
+    public List<QuestionChoice> getChoices() {
         return choices;
-    }
-
-    public void setChoices(ArrayList<QuestionChoice> choices) {
-        this.choices = choices;
     }
 
     /**
      * Choices inside question, with votes
      */
-    class QuestionChoice {
+    public class QuestionChoice {
         @SerializedName("choice")
         private String name;
         @SerializedName("votes")
