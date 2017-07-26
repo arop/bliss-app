@@ -1,9 +1,8 @@
 package com.arop.bliss_app;
 
 import android.content.Context;
-import android.support.v7.widget.LinearLayoutManager;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +13,6 @@ import com.arop.bliss_app.apiObjects.Question;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -53,6 +50,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.recycler_question_view, parent, false);
+        //v.setOnClickListener(mOnClickListener);
         // set the view's size, margins, paddings and layout parameters
         ViewHolder vh = new ViewHolder(v);
         return vh;
@@ -70,23 +68,38 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         ((TextView)holder.mView.findViewById(R.id.questionTextView)).setText(qt.getQuestion());
         // Set date
 
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        DateFormat df1 = DateFormat.getDateTimeInstance(DateFormat.FULL,DateFormat.SHORT, Locale.getDefault());
-        Date date;
-        try {
-            date = df.parse(qt.getDate());
-            String newDateString = df1.format(date);
-            ((TextView)holder.mView.findViewById(R.id.dateTextView)).setText(newDateString);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        ((TextView)holder.mView.findViewById(R.id.dateTextView)).setText(qt.getFormattedDate());
 
+        OnQuestionClickListener clickListener = new OnQuestionClickListener(position);
+        holder.mView.setOnClickListener(clickListener);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return mDatasetQuestions.size();
+    }
+
+    public void setmDatasetQuestions(List<Question> dq) {
+        this.mDatasetQuestions = dq;
+    }
+
+    public class OnQuestionClickListener implements View.OnClickListener {
+
+        private final int itemPosition;
+
+        public OnQuestionClickListener(int position){
+            this.itemPosition = position;
+        }
+
+        @Override
+        public void onClick(final View view) {
+            Question q = mDatasetQuestions.get(itemPosition);
+
+            Intent intent = new Intent(context, ShowQuestionDetailsActivity.class);
+            intent.putExtra("Question", q);
+            context.startActivity(intent);
+        }
     }
 }
 

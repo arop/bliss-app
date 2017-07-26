@@ -58,8 +58,7 @@ public class ChoicesAdapter extends RecyclerView.Adapter<ChoicesAdapter.ViewHold
         // Set choice
         ((TextView)holder.mView.findViewById(R.id.choiceTextView)).setText(qt.getName());
         // Set vote
-        ((TextView)holder.mView.findViewById(R.id.votesTextView)).setText(qt.getVotes());
-
+        ((TextView)holder.mView.findViewById(R.id.votesTextView)).setText(String.format("%d", qt.getVotes()));
     }
 
     // Return the size of your dataset (invoked by the layout manager)

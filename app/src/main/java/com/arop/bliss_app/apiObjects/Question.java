@@ -1,15 +1,24 @@
 package com.arop.bliss_app.apiObjects;
 
+import android.widget.TextView;
+
+import com.arop.bliss_app.R;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by andre on 25/07/2017.
  */
 
-public class Question {
+public class Question implements Serializable {
     @SerializedName("id")
     private int id;
     @SerializedName("image_url")
@@ -68,10 +77,23 @@ public class Question {
         return choices;
     }
 
+    public String getFormattedDate() {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        DateFormat df1 = DateFormat.getDateTimeInstance(DateFormat.FULL,DateFormat.SHORT, Locale.getDefault());
+        Date date;
+        try {
+            date = df.parse(this.date);
+            return df1.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
     /**
      * Choices inside question, with votes
      */
-    public class QuestionChoice {
+    public class QuestionChoice implements Serializable {
         @SerializedName("choice")
         private String name;
         @SerializedName("votes")

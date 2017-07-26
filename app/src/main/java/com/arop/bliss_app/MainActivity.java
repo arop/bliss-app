@@ -118,9 +118,9 @@ public class MainActivity extends AppCompatActivity {
                 ArrayList<Question> qts = response.body();
                 questions = qts;
 
-                // specify an adapter (see also next example)
-                mAdapter = new QuestionAdapter(questions, getApplicationContext());
-                mRecyclerView.setAdapter(mAdapter);
+                // update dataset
+                ((QuestionAdapter)mAdapter).setmDatasetQuestions(questions);
+                mAdapter.notifyDataSetChanged();
             }
 
             @Override
