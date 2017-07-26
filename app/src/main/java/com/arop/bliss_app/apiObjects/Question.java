@@ -77,6 +77,15 @@ public class Question implements Serializable {
         return choices;
     }
 
+    public void addVote(String name) {
+        for (QuestionChoice qc: getChoices()) {
+            if(qc.getName().equals(name)) {
+                qc.setVotes(qc.getVotes()+1);
+                return;
+            }
+        }
+    }
+
     public String getFormattedDate() {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         DateFormat df1 = DateFormat.getDateTimeInstance(DateFormat.FULL,DateFormat.SHORT, Locale.getDefault());

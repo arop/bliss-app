@@ -25,18 +25,18 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
-        public View mView;
+        View mView;
 
-        public ViewHolder(View v) {
+        ViewHolder(View v) {
             super(v);
             mView = v;
         }
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public QuestionAdapter(List<Question> f, Context c) {
+    QuestionAdapter(List<Question> f, Context c) {
         mDatasetQuestions = f;
         context = c;
     }
@@ -47,7 +47,6 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.recycler_question_view, parent, false);
-        //v.setOnClickListener(mOnClickListener);
         // set the view's size, margins, paddings and layout parameters
         ViewHolder vh = new ViewHolder(v);
         return vh;
@@ -62,13 +61,13 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         // Set thumbnail
         ImageLoader imageLoader = ImageLoader.getInstance();
         ImageView imgView = (ImageView) holder.mView.findViewById(R.id.thumbImageView);
-        imageLoader.displayImage(qt.getThumb_url(),imgView);
+        imageLoader.displayImage(qt.getThumb_url(), imgView);
 
         // Set question
-        ((TextView)holder.mView.findViewById(R.id.questionTextView)).setText(qt.getQuestion());
+        ((TextView) holder.mView.findViewById(R.id.questionTextView)).setText(qt.getQuestion());
         // Set date
 
-        ((TextView)holder.mView.findViewById(R.id.dateTextView)).setText(qt.getFormattedDate());
+        ((TextView) holder.mView.findViewById(R.id.dateTextView)).setText(qt.getFormattedDate());
 
         OnQuestionClickListener clickListener = new OnQuestionClickListener(position);
         holder.mView.setOnClickListener(clickListener);
@@ -80,15 +79,24 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         return mDatasetQuestions.size();
     }
 
-    public void setmDatasetQuestions(List<Question> dq) {
+    void setmDatasetQuestions(List<Question> dq) {
         this.mDatasetQuestions = dq;
+        this.notifyDataSetChanged();
     }
 
-    public class OnQuestionClickListener implements View.OnClickListener {
+    void addQuestions(List<Question> dq) {
+        this.mDatasetQuestions.addAll(dq);
+        this.notifyDataSetChanged();
+    }
+
+    /**
+     * Click listener on question to start new activity for question details
+     */
+    private class OnQuestionClickListener implements View.OnClickListener {
 
         private final int itemPosition;
 
-        public OnQuestionClickListener(int position){
+        OnQuestionClickListener(int position) {
             this.itemPosition = position;
         }
 

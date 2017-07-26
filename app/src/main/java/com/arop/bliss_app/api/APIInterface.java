@@ -6,7 +6,9 @@ import com.arop.bliss_app.apiObjects.Question;
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -35,5 +37,12 @@ public interface APIInterface {
      */
     @GET("/questions/{id}")
     Call<Question> getQuestion(@Path("id") int id);
+
+    /**
+     * Vote on a question
+     * @param id question id
+     */
+    @PUT("/questions/{id}")
+    Call<Question> vote(@Path("id") int id, @Body Question question);
 
 }

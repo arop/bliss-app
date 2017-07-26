@@ -1,6 +1,5 @@
 package com.arop.bliss_app;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,7 +35,7 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    APIInterface apiInterface;
+    static APIInterface apiInterface;
     ProgressBar progressBar;
 
     private RecyclerView mRecyclerView;
@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
         setImageLoader();
         setRecyclerView();
+
         checkHealth();
     }
 
@@ -89,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
         imageLoader.init(config);
     }
 
+    /**
+     * Sets questions list recycler view
+     */
     private void setRecyclerView() {
         mRecyclerView = (RecyclerView) findViewById(R.id.questionsRecyclerView);
         // use this setting to improve performance if you know that changes
@@ -124,13 +128,10 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) {
                 Health health = (Health) response.body();
                 String status = health.getStatus();
-                if(Objects.equals(status, "OK")) {
-                    progressBar.setVisibility(View.INVISIBLE);
-                    Toast.makeText(getApplicationContext(), status, Toast.LENGTH_SHORT).show();
-                    getQuestions();
-                    setRecyclerView();
-                }
-                else if(Objects.equals(status, "NOT OK"))
+                if (Objects.equals(status, "OK")) {
+                    progressBar.setVisibility(View.GONE);
+                    getQuestions(0);
+                } else if (Objects.equals(status, "NOT OK"))
                     Toast.makeText(getApplicationContext(), status, Toast.LENGTH_SHORT).show();
             }
 
@@ -141,17 +142,20 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void getQuestions() {
-        Call getQuestionsCall = apiInterface.getQuestions(10,1,"");
+    /**
+     * Get more questions from server
+     * @param currentNumberItems
+     */
+    private void getQuestions(final int currentNumberItems) {
+        Log.e("temp",currentNumberItems+"");
+        Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, "");
         getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
             @Override
             public void onResponse(Call<ArrayList<Question>> call, Response<ArrayList<Question>> response) {
                 ArrayList<Question> qts = response.body();
-                questions = qts;
-
+                questions.addAll(qts);
                 // update dataset
-                ((QuestionAdapter)mAdapter).setmDatasetQuestions(questions);
-                mAdapter.notifyDataSetChanged();
+                ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
             }
 
             @Override
@@ -160,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -182,4 +185,5 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 }
