@@ -9,6 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.arop.bliss_app.apiObjects.Question;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,14 +39,18 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         imgView = (ImageView) findViewById(R.id.imageView);
 
         qt = (Question) getIntent().getSerializableExtra("Question");
-        setViewText();
+        setView();
         setRecyclerView();
     }
 
-    private void setViewText() {
+    /**
+     * Sets view elements
+     */
+    private void setView() {
         questionTitleTextView.setText(qt.getQuestion());
         dateTextView.setText(qt.getFormattedDate());
-        //TODO imgView
+        ImageLoader imageLoader = ImageLoader.getInstance();
+        imageLoader.displayImage(qt.getImage_url(),imgView);
     }
 
     /**

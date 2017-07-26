@@ -6,16 +6,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.arop.bliss_app.apiObjects.Question;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by andre on 25/07/2017.
@@ -63,7 +60,10 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         Question qt = mDatasetQuestions.get(position);
 
         // Set thumbnail
-        // TODO
+        ImageLoader imageLoader = ImageLoader.getInstance();
+        ImageView imgView = (ImageView) holder.mView.findViewById(R.id.thumbImageView);
+        imageLoader.displayImage(qt.getThumb_url(),imgView);
+
         // Set question
         ((TextView)holder.mView.findViewById(R.id.questionTextView)).setText(qt.getQuestion());
         // Set date
