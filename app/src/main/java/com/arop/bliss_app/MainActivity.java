@@ -1,5 +1,6 @@
 package com.arop.bliss_app;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.arop.bliss_app.api.RetrofitClient;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     static APIInterface apiInterface;
     ProgressBar progressBar;
+    View currentLayout;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        currentLayout = findViewById(R.id.coordinatorLayout);
 
         questions = new ArrayList<>();
 
@@ -122,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
      * Request server health status
      */
     private void checkHealth() {
+        progressBar.setVisibility(View.VISIBLE);
         Call getHealthCall = apiInterface.getHealth();
         getHealthCall.enqueue(new Callback() {
             @Override
@@ -131,8 +136,10 @@ public class MainActivity extends AppCompatActivity {
                 if (Objects.equals(status, "OK")) {
                     progressBar.setVisibility(View.GONE);
                     getQuestions(0);
-                } else if (Objects.equals(status, "NOT OK"))
-                    Toast.makeText(getApplicationContext(), status, Toast.LENGTH_SHORT).show();
+                } else if (Objects.equals(status, "NOT OK")) {
+                    progressBar.setVisibility(View.GONE);
+                    showRetrySnackbar();
+                }
             }
 
             @Override
@@ -142,12 +149,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void showRetrySnackbar() {
+        Snackbar snackbar = Snackbar
+                .make(currentLayout, "Connection failed, try again!", Snackbar.LENGTH_INDEFINITE)
+                .setAction("RETRY", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        checkHealth();
+                    }
+                });
+        snackbar.setActionTextColor(Color.RED);
+        View sbView = snackbar.getView();
+        TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+        textView.setTextColor(Color.YELLOW);
+        snackbar.show();
+    }
+
     /**
      * Get more questions from server
+     *
      * @param currentNumberItems
      */
     private void getQuestions(final int currentNumberItems) {
-        Log.e("temp",currentNumberItems+"");
+        Log.e("temp", currentNumberItems + "");
         Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, "");
         getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
             @Override
