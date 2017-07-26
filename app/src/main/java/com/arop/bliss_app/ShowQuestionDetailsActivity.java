@@ -1,5 +1,6 @@
 package com.arop.bliss_app;
 
+import android.app.Dialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,8 +16,12 @@ import android.widget.Toast;
 import com.arop.bliss_app.api.APIInterface;
 import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.apiObjects.Question;
+import com.arop.bliss_app.networkUtils.ConnectivityEvent;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +43,8 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
     private Question qt;
 
     APIInterface apiInterface;
+    private EventBus bus = EventBus.getDefault();
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +61,10 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         qt = (Question) getIntent().getSerializableExtra("Question");
         setView();
         setRecyclerView();
+
+        // Register as a subscriber
+        bus.register(this);
+        setDialog();
     }
 
     /**
@@ -104,5 +115,33 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Unregister
+        bus.unregister(this);
+        super.onDestroy();
+    }
+
+    /**
+     * Perform action when connectivity changes
+     * @param event
+     */
+    @Subscribe
+    public void onEvent(ConnectivityEvent event){
+        if(!event.isConnected())
+            dialog.show();
+        else dialog.dismiss();
+    }
+
+    /**
+     * Sets dialog for lost connection
+     */
+    private void setDialog() {
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.connectivity_lost_dialog);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
     }
 }

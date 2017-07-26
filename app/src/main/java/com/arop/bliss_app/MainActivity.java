@@ -1,5 +1,7 @@
 package com.arop.bliss_app;
 
+import android.app.Dialog;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -12,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,12 +23,17 @@ import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.api.APIInterface;
 import com.arop.bliss_app.apiObjects.Health;
 import com.arop.bliss_app.apiObjects.Question;
+import com.arop.bliss_app.networkUtils.ConnectivityEvent;
+import com.arop.bliss_app.networkUtils.NetworkStateReceiver;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +52,12 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-
     private List<Question> questions;
 
     private ImageLoader imageLoader;
+
+    private EventBus bus = EventBus.getDefault();
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +71,10 @@ public class MainActivity extends AppCompatActivity {
 
         /////////////////////////
         setFloatingButton();
+
+        // Register as a subscriber
+        bus.register(this);
+        setDialog();
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         apiInterface = RetrofitClient.getClient().create(APIInterface.class);
@@ -210,4 +224,31 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onDestroy() {
+        // Unregister
+        bus.unregister(this);
+        super.onDestroy();
+    }
+
+    /**
+     * Perform action when connectivity changes
+     * @param event
+     */
+    @Subscribe
+    public void onEvent(ConnectivityEvent event){
+        if(!event.isConnected())
+            dialog.show();
+        else dialog.dismiss();
+    }
+
+    /**
+     * Sets dialog for lost connection
+     */
+    private void setDialog() {
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.connectivity_lost_dialog);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
+    }
 }
