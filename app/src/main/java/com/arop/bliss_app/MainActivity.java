@@ -1,7 +1,9 @@
 package com.arop.bliss_app;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EventBus bus = EventBus.getDefault();
     Dialog dialog;
+    AlertDialog.Builder alert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +90,13 @@ public class MainActivity extends AppCompatActivity {
         setRecyclerView();
         checkHealth();
 
+        checkIfOpenedExternally();
+    }
+
+    /**
+     * Checks if app was openned by an external link
+     */
+    private void checkIfOpenedExternally() {
         Intent intent = getIntent();
         String action = intent.getAction();
         if(Objects.equals(action, Intent.ACTION_VIEW)) {
@@ -148,8 +158,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                setSearchDialog();
             }
         });
     }
@@ -181,6 +190,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Shows retry snackbar when server health is NOT OK
+     */
     private void showRetrySnackbar() {
         Snackbar snackbar = Snackbar
                 .make(currentLayout, "Connection failed, try again!", Snackbar.LENGTH_INDEFINITE)
@@ -268,6 +280,30 @@ public class MainActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.connectivity_lost_dialog);
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
+    }
+
+    /**
+     * Sets search dialog
+     */
+    private void setSearchDialog(){
+        alert = new AlertDialog.Builder(MainActivity.this);
+        alert.setTitle("Manual Item Search");
+        alert.setMessage("Input Search Query");
+        // Set an EditText view to get user input
+        final EditText input = new EditText(MainActivity.this);
+        alert.setView(input);
+        alert.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String result = input.getText().toString();
+                //do what you want with your result
+            }
+        });
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+        alert.show();
     }
 
     /**
