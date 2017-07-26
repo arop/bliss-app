@@ -1,8 +1,11 @@
 package com.arop.bliss_app;
 
 import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -45,7 +48,7 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    static APIInterface apiInterface;
+    APIInterface apiInterface;
     ProgressBar progressBar;
     View currentLayout;
 
@@ -80,9 +83,24 @@ public class MainActivity extends AppCompatActivity {
         apiInterface = RetrofitClient.getClient().create(APIInterface.class);
 
         setImageLoader();
-        setRecyclerView();
 
+        setRecyclerView();
         checkHealth();
+
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        if(Objects.equals(action, Intent.ACTION_VIEW)) {
+            Uri data = intent.getData();
+            String question_id = data.getQueryParameter("question_id");
+            if(question_id != null) {
+                try {
+                    int q_id = Integer.parseInt(question_id);
+                    getQuestion(getApplicationContext(), q_id);
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(),"Invalid question ID",Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
     /**
@@ -250,5 +268,29 @@ public class MainActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.connectivity_lost_dialog);
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
+    }
+
+    /**
+     * Get question from server
+     *
+     * @param id question id
+     */
+    private void getQuestion(final Context context, int id) {
+        Call getQuestionCall = apiInterface.getQuestion(id);
+        getQuestionCall.enqueue(new Callback<Question>() {
+            @Override
+            public void onResponse(Call<Question> call, Response<Question> response) {
+                Question qt = response.body();
+                Intent intent = new Intent(context, ShowQuestionDetailsActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("Question", qt);
+                context.startActivity(intent);
+            }
+
+            @Override
+            public void onFailure(Call<Question> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

@@ -1,6 +1,8 @@
 package com.arop.bliss_app;
 
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,8 +25,15 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -57,7 +66,8 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         dateTextView = (TextView) findViewById(R.id.dateTextView);
         imgView = (ImageView) findViewById(R.id.imageView);
 
-        apiInterface = MainActivity.apiInterface;
+        apiInterface = RetrofitClient.getClient().create(APIInterface.class);
+
         qt = (Question) getIntent().getSerializableExtra("Question");
         setView();
         setRecyclerView();
@@ -96,6 +106,7 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
 
     /**
      * Vote on a choice and update view
+     *
      * @param q question
      */
     public void vote(Question q) {
@@ -126,11 +137,12 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
 
     /**
      * Perform action when connectivity changes
+     *
      * @param event
      */
     @Subscribe
-    public void onEvent(ConnectivityEvent event){
-        if(!event.isConnected())
+    public void onEvent(ConnectivityEvent event) {
+        if (!event.isConnected())
             dialog.show();
         else dialog.dismiss();
     }
@@ -144,4 +156,5 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
     }
+
 }
