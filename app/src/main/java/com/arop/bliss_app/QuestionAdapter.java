@@ -12,14 +12,14 @@ import android.widget.TextView;
 import com.arop.bliss_app.apiObjects.Question;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by andre on 25/07/2017.
  */
 
 public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHolder> {
-    private List<Question> mDatasetQuestions;
+    private ArrayList<Question> mDatasetQuestions;
     private Context context;
 
     // Provide a reference to the views for each data item
@@ -36,7 +36,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    QuestionAdapter(List<Question> f, Context c) {
+    QuestionAdapter(ArrayList<Question> f, Context c) {
         mDatasetQuestions = f;
         context = c;
     }
@@ -79,12 +79,16 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         return mDatasetQuestions.size();
     }
 
-    void setmDatasetQuestions(List<Question> dq) {
+    /**
+     * Set questions
+     * @param dq questions list
+     */
+    void setmDatasetQuestions(ArrayList<Question> dq) {
         this.mDatasetQuestions = dq;
         this.notifyDataSetChanged();
     }
 
-    void addQuestions(List<Question> dq) {
+    void addQuestions(ArrayList<Question> dq) {
         this.mDatasetQuestions.addAll(dq);
         this.notifyDataSetChanged();
     }

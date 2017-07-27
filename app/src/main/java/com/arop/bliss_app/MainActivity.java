@@ -1,25 +1,22 @@
 package com.arop.bliss_app;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.SearchManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +26,6 @@ import com.arop.bliss_app.api.APIInterface;
 import com.arop.bliss_app.apiObjects.Health;
 import com.arop.bliss_app.apiObjects.Question;
 import com.arop.bliss_app.networkUtils.ConnectivityEvent;
-import com.arop.bliss_app.networkUtils.NetworkStateReceiver;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -57,13 +53,12 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private List<Question> questions;
+    private ArrayList<Question> questions, searchQuestions;
 
     private ImageLoader imageLoader;
 
     private EventBus bus = EventBus.getDefault();
-    Dialog dialog;
-    AlertDialog.Builder alert;
+    Dialog connectivityDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,9 +69,10 @@ public class MainActivity extends AppCompatActivity {
         currentLayout = findViewById(R.id.coordinatorLayout);
 
         questions = new ArrayList<>();
+        searchQuestions = new ArrayList<>();
 
         /////////////////////////
-        setFloatingButton();
+        //setFloatingButton();
 
         // Register as a subscriber
         bus.register(this);
@@ -153,16 +149,6 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
     }
 
-    private void setFloatingButton() {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setSearchDialog();
-            }
-        });
-    }
-
     /**
      * Request server health status
      */
@@ -215,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
      * @param currentNumberItems
      */
     private void getQuestions(final int currentNumberItems) {
-        Log.e("temp", currentNumberItems + "");
         Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, "");
         getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
             @Override
@@ -233,10 +218,67 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Get more questions from server
+     *
+     * @param currentNumberItems
+     */
+    private void searchQuestions(final int currentNumberItems, final String searchQuery) {
+        Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, searchQuery);
+        getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
+            @Override
+            public void onResponse(Call<ArrayList<Question>> call, Response<ArrayList<Question>> response) {
+                ArrayList<Question> qts = response.body();
+                searchQuestions.addAll(qts);
+                // update dataset
+                ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<Question>> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // Get the SearchView and set the searchable configuration
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        final SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        // Assumes current activity is the searchable activity
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setIconifiedByDefault(true); // Do not iconify the widget; expand it by default
+
+        // On search click show search questions
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // Search query
+                searchQuestions(0,query);
+                Log.e("search",query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        // On dismiss clear search data and show default questions
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
+                searchView.onActionViewCollapsed();
+                searchQuestions.clear();
+                return false;
+            }
+        });
         return true;
     }
 
@@ -248,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_search) {
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -268,42 +310,18 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe
     public void onEvent(ConnectivityEvent event){
         if(!event.isConnected())
-            dialog.show();
-        else dialog.dismiss();
+            connectivityDialog.show();
+        else connectivityDialog.dismiss();
     }
 
     /**
-     * Sets dialog for lost connection
+     * Sets connectivityDialog for lost connection
      */
     private void setDialog() {
-        dialog = new Dialog(this);
-        dialog.setContentView(R.layout.connectivity_lost_dialog);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setCancelable(false);
-    }
-
-    /**
-     * Sets search dialog
-     */
-    private void setSearchDialog(){
-        alert = new AlertDialog.Builder(MainActivity.this);
-        alert.setTitle("Manual Item Search");
-        alert.setMessage("Input Search Query");
-        // Set an EditText view to get user input
-        final EditText input = new EditText(MainActivity.this);
-        alert.setView(input);
-        alert.setPositiveButton("Search", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                String result = input.getText().toString();
-                //do what you want with your result
-            }
-        });
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                // Canceled.
-            }
-        });
-        alert.show();
+        connectivityDialog = new Dialog(this);
+        connectivityDialog.setContentView(R.layout.connectivity_lost_dialog);
+        connectivityDialog.setCanceledOnTouchOutside(false);
+        connectivityDialog.setCancelable(false);
     }
 
     /**

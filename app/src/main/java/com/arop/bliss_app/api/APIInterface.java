@@ -3,7 +3,7 @@ package com.arop.bliss_app.api;
 import com.arop.bliss_app.apiObjects.Health;
 import com.arop.bliss_app.apiObjects.Question;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -29,7 +29,7 @@ public interface APIInterface {
      * URL: base + /questions?limit&offset&filter
      */
     @GET("/questions")
-    Call<List<Question>> getQuestions(@Query("limit") int limit, @Query("offset") int offset, @Query("filter") String filter);
+    Call<ArrayList<Question>> getQuestions(@Query("limit") int limit, @Query("offset") int offset, @Query("filter") String filter);
 
     /**
      * Get single question

@@ -148,7 +148,7 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * Sets dialog for lost connection
+     * Sets connectivityDialog for lost connection
      */
     private void setDialog() {
         dialog = new Dialog(this);
