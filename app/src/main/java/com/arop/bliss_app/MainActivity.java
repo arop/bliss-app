@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     APIInterface apiInterface;
     ProgressBar progressBar;
     View currentLayout;
+    SearchView searchView;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -85,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
 
         setRecyclerView();
         checkHealth();
-
-        checkIfOpenedExternally();
     }
 
     /**
@@ -104,6 +103,16 @@ public class MainActivity extends AppCompatActivity {
                     getQuestion(getApplicationContext(), q_id);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(),"Invalid question ID",Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            String question_filter = data.getQueryParameter("question_filter");
+            if(question_filter != null) {
+                searchView.setIconified(false);
+                if(question_filter.length() > 0) {
+                    searchView.setQuery(question_filter,true);
+                } else {
+                    searchView.setQuery(question_filter,false);
                 }
             }
         }
@@ -248,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Get the SearchView and set the searchable configuration
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        final SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
         // Assumes current activity is the searchable activity
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setIconifiedByDefault(true); // Do not iconify the widget; expand it by default
@@ -259,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String query) {
                 // Search query
                 searchQuestions(0,query);
-                Log.e("search",query);
                 return true;
             }
 
@@ -279,6 +287,8 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        checkIfOpenedExternally();
         return true;
     }
 
