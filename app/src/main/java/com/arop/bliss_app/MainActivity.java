@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,10 +48,10 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    APIInterface apiInterface;
-    ProgressBar progressBar;
-    View currentLayout;
-    SearchView searchView;
+    private APIInterface apiInterface;
+    private ProgressBar progressBar;
+    private View currentLayout;
+    private SearchView searchView;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -72,8 +74,13 @@ public class MainActivity extends AppCompatActivity {
         questions = new ArrayList<>();
         searchQuestions = new ArrayList<>();
 
-        /////////////////////////
-        //setFloatingButton();
+        Button showMoreButton = (Button) findViewById(R.id.showMoreButton);
+        showMoreButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getQuestions(questions.size());
+            }
+        });
 
         // Register as a subscriber
         bus.register(this);
@@ -89,31 +96,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Checks if app was openned by an external link
+     * Checks if app was opened by an external link
      */
     private void checkIfOpenedExternally() {
         Intent intent = getIntent();
         String action = intent.getAction();
-        if(Objects.equals(action, Intent.ACTION_VIEW)) {
+        if (Objects.equals(action, Intent.ACTION_VIEW)) {
             Uri data = intent.getData();
             String question_id = data.getQueryParameter("question_id");
-            if(question_id != null) {
+            if (question_id != null) {
                 try {
                     int q_id = Integer.parseInt(question_id);
                     getQuestion(getApplicationContext(), q_id);
                 } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(),"Invalid question ID",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Invalid question ID", Toast.LENGTH_SHORT).show();
                 }
             }
 
             String question_filter = data.getQueryParameter("question_filter");
-            if(question_filter != null) {
+            if (question_filter != null) {
                 searchView.setIconified(false);
-                if(question_filter.length() > 0) {
-                    searchView.setQuery(question_filter,true);
-                } else {
-                    searchView.setQuery(question_filter,false);
-                }
+                boolean isEmpty = (question_filter.length() > 0);
+                searchView.setQuery(question_filter, isEmpty);
+
             }
         }
     }
@@ -207,21 +212,25 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Get more questions from server
      *
-     * @param currentNumberItems
+     * @param currentNumberItems current number of items
      */
     private void getQuestions(final int currentNumberItems) {
         Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, "");
         getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
             @Override
-            public void onResponse(Call<ArrayList<Question>> call, Response<ArrayList<Question>> response) {
+            public void onResponse(@NonNull Call<ArrayList<Question>> call, @NonNull Response<ArrayList<Question>> response) {
                 ArrayList<Question> qts = response.body();
-                questions.addAll(qts);
-                // update dataset
-                ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
+                if(qts != null) {
+                    questions.addAll(qts);
+                    // update dataset
+                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onFailure(Call<ArrayList<Question>> call, Throwable t) {
+            public void onFailure(@NonNull Call<ArrayList<Question>> call, @NonNull Throwable t) {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -230,21 +239,26 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Get more questions from server
      *
-     * @param currentNumberItems
+     * @param currentNumberItems current number of items
      */
     private void searchQuestions(final int currentNumberItems, final String searchQuery) {
         Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, searchQuery);
         getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
             @Override
-            public void onResponse(Call<ArrayList<Question>> call, Response<ArrayList<Question>> response) {
+            public void onResponse(@NonNull Call<ArrayList<Question>> call, @NonNull Response<ArrayList<Question>> response) {
                 ArrayList<Question> qts = response.body();
-                searchQuestions.addAll(qts);
-                // update dataset
-                ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
+                if (qts != null) {
+                    searchQuestions.addAll(qts);
+                    // update dataset
+                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onFailure(Call<ArrayList<Question>> call, Throwable t) {
+            public void onFailure(@NonNull Call<ArrayList<Question>> call, @NonNull Throwable t) {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -267,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 // Search query
-                searchQuestions(0,query);
+                searchQuestions(0, query);
                 return true;
             }
 
@@ -315,11 +329,12 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Perform action when connectivity changes
-     * @param event
+     *
+     * @param event connectivity event
      */
     @Subscribe
-    public void onEvent(ConnectivityEvent event){
-        if(!event.isConnected())
+    public void onEvent(ConnectivityEvent event) {
+        if (!event.isConnected())
             connectivityDialog.show();
         else connectivityDialog.dismiss();
     }
@@ -343,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
         Call getQuestionCall = apiInterface.getQuestion(id);
         getQuestionCall.enqueue(new Callback<Question>() {
             @Override
-            public void onResponse(Call<Question> call, Response<Question> response) {
+            public void onResponse(@NonNull Call<Question> call, @NonNull Response<Question> response) {
                 Question qt = response.body();
                 Intent intent = new Intent(context, ShowQuestionDetailsActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -352,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Question> call, Throwable t) {
+            public void onFailure(@NonNull Call<Question> call, @NonNull Throwable t) {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
