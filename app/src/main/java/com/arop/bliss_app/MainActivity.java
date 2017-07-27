@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private View currentLayout;
     private SearchView searchView;
+    private Button showMoreButton;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         questions = new ArrayList<>();
         searchQuestions = new ArrayList<>();
 
-        Button showMoreButton = (Button) findViewById(R.id.showMoreButton);
+        showMoreButton = (Button) findViewById(R.id.showMoreButton);
         showMoreButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -176,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
                 String status = health.getStatus();
                 if (Objects.equals(status, "OK")) {
                     progressBar.setVisibility(View.GONE);
+                    showMoreButton.setVisibility(View.VISIBLE);
                     getQuestions(0);
                 } else if (Objects.equals(status, "NOT OK")) {
                     progressBar.setVisibility(View.GONE);

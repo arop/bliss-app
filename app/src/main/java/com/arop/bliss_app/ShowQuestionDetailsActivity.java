@@ -1,14 +1,21 @@
 package com.arop.bliss_app;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -18,6 +25,7 @@ import android.widget.Toast;
 import com.arop.bliss_app.api.APIInterface;
 import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.apiObjects.Question;
+import com.arop.bliss_app.apiObjects.Share;
 import com.arop.bliss_app.networkUtils.ConnectivityEvent;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -53,7 +61,7 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
 
     APIInterface apiInterface;
     private EventBus bus = EventBus.getDefault();
-    Dialog dialog;
+    private Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +163,73 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.connectivity_lost_dialog);
         dialog.setCanceledOnTouchOutside(false);
         dialog.setCancelable(false);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_show_details, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_share) {
+            showShareDialog();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Send share api call
+     */
+    private void shareQuestion(String email) {
+        String url = "blissrecruitment://questions?question_id=" + qt.getId();
+
+        Call getQuestionsCall = apiInterface.share(email, url);
+        getQuestionsCall.enqueue(new Callback<Share>() {
+            @Override
+            public void onResponse(@NonNull Call<Share> call, @NonNull Response<Share> response) {
+                Share s = response.body();
+                if (s != null) {
+                    Toast.makeText(getApplicationContext(), s.getStatus(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Share> call, @NonNull Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showShareDialog() {
+        final EditText editText = new EditText(this);
+        editText.setHint("Destination email");
+
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Share this question?")
+                .setMessage("Please enter destination email")
+                .setView(editText)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String email = editText.getText().toString();
+                        shareQuestion(email);
+                    }
+                })
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do nothing
+                    }
+                })
+                .setIcon(android.R.drawable.ic_menu_share)
+                .show();
     }
 
 }
