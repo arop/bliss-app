@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.arop.bliss_app.apiObjects.Question;
@@ -70,13 +69,7 @@ class ChoicesAdapter extends RecyclerView.Adapter<ChoicesAdapter.ViewHolder> {
         rb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for (Question.QuestionChoice qc : question.getChoices()) {
-                    Log.e("temp", qc.getName() + "-" + qc.getVotes());
-                }
                 question.addVote(qt.getName());
-                for (Question.QuestionChoice qc : question.getChoices()) {
-                    Log.e("temp", qc.getName() + "-" + qc.getVotes());
-                }
                 ((ShowQuestionDetailsActivity)context).vote(question);
             }
         });

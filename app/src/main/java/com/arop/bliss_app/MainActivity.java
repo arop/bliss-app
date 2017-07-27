@@ -14,7 +14,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,7 +38,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import retrofit2.Call;
@@ -165,34 +163,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Request server health status
-     */
-    private void checkHealth() {
-        progressBar.setVisibility(View.VISIBLE);
-        Call getHealthCall = apiInterface.getHealth();
-        getHealthCall.enqueue(new Callback() {
-            @Override
-            public void onResponse(Call call, Response response) {
-                Health health = (Health) response.body();
-                String status = health.getStatus();
-                if (Objects.equals(status, "OK")) {
-                    progressBar.setVisibility(View.GONE);
-                    showMoreButton.setVisibility(View.VISIBLE);
-                    getQuestions(0);
-                } else if (Objects.equals(status, "NOT OK")) {
-                    progressBar.setVisibility(View.GONE);
-                    showRetrySnackbar();
-                }
-            }
-
-            @Override
-            public void onFailure(Call call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    /**
      * Shows retry snackbar when server health is NOT OK
      */
     private void showRetrySnackbar() {
@@ -209,61 +179,6 @@ public class MainActivity extends AppCompatActivity {
         TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
         textView.setTextColor(Color.YELLOW);
         snackbar.show();
-    }
-
-    /**
-     * Get more questions from server
-     *
-     * @param currentNumberItems current number of items
-     */
-    private void getQuestions(final int currentNumberItems) {
-        Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, "");
-        getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
-            @Override
-            public void onResponse(@NonNull Call<ArrayList<Question>> call, @NonNull Response<ArrayList<Question>> response) {
-                ArrayList<Question> qts = response.body();
-                if(qts != null) {
-                    questions.addAll(qts);
-                    // update dataset
-                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
-                } else {
-                    Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<ArrayList<Question>> call, @NonNull Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    /**
-     * Get more questions from server
-     *
-     * @param currentNumberItems current number of items
-     */
-    private void searchQuestions(final int currentNumberItems, final String searchQuery) {
-        Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, searchQuery);
-        getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
-            @Override
-            public void onResponse(@NonNull Call<ArrayList<Question>> call, @NonNull Response<ArrayList<Question>> response) {
-                ArrayList<Question> qts = response.body();
-                if (qts != null) {
-                    searchQuestions.addAll(qts);
-                    // update dataset
-                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
-                }
-                else {
-                    Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<ArrayList<Question>> call, @NonNull Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     @Override
@@ -349,6 +264,93 @@ public class MainActivity extends AppCompatActivity {
         connectivityDialog.setContentView(R.layout.connectivity_lost_dialog);
         connectivityDialog.setCanceledOnTouchOutside(false);
         connectivityDialog.setCancelable(false);
+    }
+
+
+    /////////////////////////////////////////////////////////
+    ///////// API REQUESTS //////////////////////////////////
+    /**
+     * Request server health status
+     */
+    private void checkHealth() {
+        progressBar.setVisibility(View.VISIBLE);
+        Call getHealthCall = apiInterface.getHealth();
+        getHealthCall.enqueue(new Callback<Health>() {
+            @Override
+            public void onResponse(@NonNull Call<Health> call, @NonNull Response<Health> response) {
+                Health health = response.body();
+                if (health != null) {
+                    String status = health.getStatus();
+                    if (Objects.equals(status, "OK")) {
+                        progressBar.setVisibility(View.GONE);
+                        showMoreButton.setVisibility(View.VISIBLE);
+                        getQuestions(0);
+                    } else if (Objects.equals(status, "NOT OK")) {
+                        progressBar.setVisibility(View.GONE);
+                        showRetrySnackbar();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Health> call, @NonNull Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Get more questions from server
+     *
+     * @param currentNumberItems current number of items
+     */
+    private void getQuestions(final int currentNumberItems) {
+        Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, "");
+        getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
+            @Override
+            public void onResponse(@NonNull Call<ArrayList<Question>> call, @NonNull Response<ArrayList<Question>> response) {
+                ArrayList<Question> qts = response.body();
+                if (qts != null) {
+                    questions.addAll(qts);
+                    // update dataset
+                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ArrayList<Question>> call, @NonNull Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Get more questions from server
+     *
+     * @param currentNumberItems current number of items
+     */
+    private void searchQuestions(final int currentNumberItems, final String searchQuery) {
+        Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, searchQuery);
+        getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
+            @Override
+            public void onResponse(@NonNull Call<ArrayList<Question>> call, @NonNull Response<ArrayList<Question>> response) {
+                ArrayList<Question> qts = response.body();
+                if (qts != null) {
+                    searchQuestions.addAll(qts);
+                    // update dataset
+                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ArrayList<Question>> call, @NonNull Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**
