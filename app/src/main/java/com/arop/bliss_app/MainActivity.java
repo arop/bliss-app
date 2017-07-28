@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -71,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EventBus bus = EventBus.getDefault();
     private Dialog connectivityDialog;
+    private boolean startedWithNoConnectivity = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +118,18 @@ public class MainActivity extends AppCompatActivity {
         setImageLoader();
 
         setRecyclerView();
-        checkHealth();
+        checkConnection();
+    }
+
+    private void checkConnection() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
+        if (ni != null && ni.isConnectedOrConnecting()) {
+            checkHealth();
+        } else {
+            startedWithNoConnectivity = true;
+            connectivityDialog.show();
+        }
     }
 
     /**
@@ -283,6 +297,9 @@ public class MainActivity extends AppCompatActivity {
         if (!event.isConnected())
             connectivityDialog.show();
         else connectivityDialog.dismiss();
+
+        if (startedWithNoConnectivity)
+            checkHealth();
     }
 
     /**
