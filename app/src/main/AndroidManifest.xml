@@ -24,6 +24,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <data android:scheme="blissrecruitment" />
@@ -41,7 +42,7 @@
         <activity
             android:name=".ShowQuestionDetailsActivity"
             android:label="@string/title_activity_show_question_details"
-            android:parentActivityName=".MainActivity"></activity>
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>

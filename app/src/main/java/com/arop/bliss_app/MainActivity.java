@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private ArrayList<Question> questions, searchQuestions;
+    private static ArrayList<Question> questions, searchQuestions;
     private String searchQuery = "";
     private FloatingActionButton shareSearchFab;
     private TextView searchResultsTextView;
@@ -89,7 +89,11 @@ public class MainActivity extends AppCompatActivity {
         showMoreButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getQuestions(questions.size());
+                if (searchResultsTextView.getVisibility() == View.VISIBLE) {
+                    searchQuestions(searchQuestions.size(), searchQuery);
+                } else {
+                    getQuestions(questions.size());
+                }
             }
         });
 
@@ -309,7 +313,6 @@ public class MainActivity extends AppCompatActivity {
                     String status = health.getStatus();
                     if (Objects.equals(status, "OK")) {
                         progressBar.setVisibility(View.GONE);
-                        showMoreButton.setVisibility(View.VISIBLE);
                         getQuestions(0);
                     } else if (Objects.equals(status, "NOT OK")) {
                         progressBar.setVisibility(View.GONE);
@@ -340,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
                     questions.addAll(qts);
                     // update dataset
                     ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
+                    showMoreButton.setVisibility(View.VISIBLE);
                     shareSearchFab.setVisibility(View.GONE);
                 } else {
                     Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
@@ -367,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
                 if (qts != null) {
                     searchQuestions.addAll(qts);
                     // update dataset
-                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
+                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(searchQuestions);
                     shareSearchFab.setVisibility(View.VISIBLE);
                     searchQuery = searchQuery1;
                     searchResultsTextView.setText(getResources().getString(R.string.search_query, searchQuery));
@@ -457,5 +461,22 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_menu_share)
                 .show();
+    }
+
+    /**
+     * Update question for when vote occurs in show details
+     *
+     * @param q question
+     */
+    public static void updateQuestion(Question q) {
+        int i = questions.indexOf(q);
+        if (i >= 0) {
+            questions.set(i, q);
+        }
+
+        int j = searchQuestions.indexOf(q);
+        if (j >= 0) {
+            searchQuestions.set(j, q);
+        }
     }
 }

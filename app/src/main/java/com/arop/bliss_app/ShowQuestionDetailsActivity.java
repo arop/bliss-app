@@ -113,28 +113,6 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
     }
 
-    /**
-     * Vote on a choice and update view
-     *
-     * @param q question
-     */
-    public void vote(Question q) {
-        Call voteCall = apiInterface.vote(q.getId(), q);
-        voteCall.enqueue(new Callback<Question>() {
-            @Override
-            public void onResponse(@NonNull Call<Question> call, @NonNull Response<Question> response) {
-                qt = response.body();
-                setView();
-                setRecyclerView();
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Question> call, @NonNull Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     @Override
     protected void onDestroy() {
         // Unregister
@@ -185,29 +163,6 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * Send share api call
-     */
-    private void shareQuestion(String email) {
-        String url = "blissrecruitment://questions?question_id=" + qt.getId();
-
-        Call shareQuestionCall = apiInterface.share(email, url);
-        shareQuestionCall.enqueue(new Callback<Share>() {
-            @Override
-            public void onResponse(@NonNull Call<Share> call, @NonNull Response<Share> response) {
-                Share s = response.body();
-                if (s != null) {
-                    Toast.makeText(getApplicationContext(), s.getStatus(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Share> call, @NonNull Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    /**
      * Show share dialog
      */
     private void showShareDialog() {
@@ -233,6 +188,55 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_menu_share)
                 .show();
+    }
+
+    ///////////////////////////////
+    /////// API requests
+    /**
+     * Vote on a choice and update view
+     *
+     * @param q question
+     */
+
+    public void vote(Question q) {
+        Call voteCall = apiInterface.vote(q.getId(), q);
+        voteCall.enqueue(new Callback<Question>() {
+            @Override
+            public void onResponse(@NonNull Call<Question> call, @NonNull Response<Question> response) {
+                qt = response.body();
+                setView();
+                setRecyclerView();
+                MainActivity.updateQuestion(qt);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Question> call, @NonNull Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Send share api call
+     */
+    private void shareQuestion(String email) {
+        String url = "blissrecruitment://questions?question_id=" + qt.getId();
+
+        Call shareQuestionCall = apiInterface.share(email, url);
+        shareQuestionCall.enqueue(new Callback<Share>() {
+            @Override
+            public void onResponse(@NonNull Call<Share> call, @NonNull Response<Share> response) {
+                Share s = response.body();
+                if (s != null) {
+                    Toast.makeText(getApplicationContext(), s.getStatus(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Share> call, @NonNull Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

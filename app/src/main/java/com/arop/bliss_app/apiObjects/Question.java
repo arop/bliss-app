@@ -78,6 +78,22 @@ public class Question implements Serializable {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        if (o.getClass() == this.getClass()) {
+            int a = this.id;
+            int b = ((Question) o).id;
+            return (a == b);
+        }
+        return false;
+    }
+
     /**
      * Gets date in a presentable format
      * @return formatted date
