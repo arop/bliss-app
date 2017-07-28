@@ -91,11 +91,6 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
         this.notifyDataSetChanged();
     }
 
-    void addQuestions(ArrayList<Question> dq) {
-        this.mDatasetQuestions.addAll(dq);
-        this.notifyDataSetChanged();
-    }
-
     /**
      * Click listener on question to start new activity for question details
      */
@@ -116,5 +111,6 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
             context.startActivity(intent);
         }
     }
+
 }
 

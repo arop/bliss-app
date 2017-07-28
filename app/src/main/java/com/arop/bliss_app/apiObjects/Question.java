@@ -1,8 +1,5 @@
 package com.arop.bliss_app.apiObjects;
 
-import android.widget.TextView;
-
-import com.arop.bliss_app.R;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -11,7 +8,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -109,6 +105,10 @@ public class Question implements Serializable {
             e.printStackTrace();
         }
         return "";
+    }
+
+    public void addQuestionChoice(String choice1, int i) {
+        choices.add(new QuestionChoice(choice1,i));
     }
 
     /**

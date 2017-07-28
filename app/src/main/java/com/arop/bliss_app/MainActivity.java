@@ -18,9 +18,9 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -28,8 +28,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.arop.bliss_app.adapters.QuestionAdapter;
-import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.api.APIInterface;
+import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.apiObjects.Health;
 import com.arop.bliss_app.apiObjects.Question;
 import com.arop.bliss_app.apiObjects.Share;
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
+    private LinearLayoutManager mLayoutManager;
     private static ArrayList<Question> questions, searchQuestions;
     private String searchQuery = "";
     private FloatingActionButton shareSearchFab;
