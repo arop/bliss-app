@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -191,8 +192,8 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
     private void shareQuestion(String email) {
         String url = "blissrecruitment://questions?question_id=" + qt.getId();
 
-        Call getQuestionsCall = apiInterface.share(email, url);
-        getQuestionsCall.enqueue(new Callback<Share>() {
+        Call shareQuestionCall = apiInterface.share(email, url);
+        shareQuestionCall.enqueue(new Callback<Share>() {
             @Override
             public void onResponse(@NonNull Call<Share> call, @NonNull Response<Share> response) {
                 Share s = response.body();
@@ -208,9 +209,13 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Show share dialog
+     */
     private void showShareDialog() {
         final EditText editText = new EditText(this);
         editText.setHint("Destination email");
+        editText.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
 
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);

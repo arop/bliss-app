@@ -3,21 +3,26 @@ package com.arop.bliss_app;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +31,7 @@ import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.api.APIInterface;
 import com.arop.bliss_app.apiObjects.Health;
 import com.arop.bliss_app.apiObjects.Question;
+import com.arop.bliss_app.apiObjects.Share;
 import com.arop.bliss_app.networkUtils.ConnectivityEvent;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -56,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<Question> questions, searchQuestions;
+    private String searchQuery;
+    private FloatingActionButton shareSearchFab;
+    private TextView searchResultsTextView;
 
     private ImageLoader imageLoader;
 
@@ -72,6 +81,9 @@ public class MainActivity extends AppCompatActivity {
 
         questions = new ArrayList<>();
         searchQuestions = new ArrayList<>();
+        searchQuery = "";
+
+        searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
 
         showMoreButton = (Button) findViewById(R.id.showMoreButton);
         showMoreButton.setOnClickListener(new View.OnClickListener() {
@@ -81,9 +93,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        shareSearchFab = (FloatingActionButton) findViewById(R.id.shareFloatingActionButton);
+        shareSearchFab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                showShareDialog();
+            }
+        });
+        shareSearchFab.setVisibility(View.GONE);
+
         // Register as a subscriber
         bus.register(this);
-        setDialog();
+        setConnectivityDialog();
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         apiInterface = RetrofitClient.getClient().create(APIInterface.class);
@@ -115,9 +135,12 @@ public class MainActivity extends AppCompatActivity {
             String question_filter = data.getQueryParameter("question_filter");
             if (question_filter != null) {
                 searchView.setIconified(false);
-                boolean isEmpty = (question_filter.length() > 0);
-                searchView.setQuery(question_filter, isEmpty);
-
+                if (question_filter.length() > 0) {
+                    searchView.setQuery(question_filter, true);
+                    shareSearchFab.setVisibility(View.INVISIBLE);
+                } else {
+                    searchView.setQuery(question_filter, false);
+                }
             }
         }
     }
@@ -212,6 +235,8 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
+                shareSearchFab.setVisibility(View.GONE);
+                searchResultsTextView.setVisibility(View.GONE);
                 ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
                 searchView.onActionViewCollapsed();
                 searchQuestions.clear();
@@ -259,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Sets connectivityDialog for lost connection
      */
-    private void setDialog() {
+    private void setConnectivityDialog() {
         connectivityDialog = new Dialog(this);
         connectivityDialog.setContentView(R.layout.connectivity_lost_dialog);
         connectivityDialog.setCanceledOnTouchOutside(false);
@@ -269,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
 
     /////////////////////////////////////////////////////////
     ///////// API REQUESTS //////////////////////////////////
+
     /**
      * Request server health status
      */
@@ -314,6 +340,7 @@ public class MainActivity extends AppCompatActivity {
                     questions.addAll(qts);
                     // update dataset
                     ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
+                    shareSearchFab.setVisibility(View.GONE);
                 } else {
                     Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
                 }
@@ -331,9 +358,9 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param currentNumberItems current number of items
      */
-    private void searchQuestions(final int currentNumberItems, final String searchQuery) {
-        Call getQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, searchQuery);
-        getQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
+    private void searchQuestions(final int currentNumberItems, final String searchQuery1) {
+        Call searchQuestionsCall = apiInterface.getQuestions(10, currentNumberItems, searchQuery1);
+        searchQuestionsCall.enqueue(new Callback<ArrayList<Question>>() {
             @Override
             public void onResponse(@NonNull Call<ArrayList<Question>> call, @NonNull Response<ArrayList<Question>> response) {
                 ArrayList<Question> qts = response.body();
@@ -341,6 +368,10 @@ public class MainActivity extends AppCompatActivity {
                     searchQuestions.addAll(qts);
                     // update dataset
                     ((QuestionAdapter) mAdapter).setmDatasetQuestions(qts);
+                    shareSearchFab.setVisibility(View.VISIBLE);
+                    searchQuery = searchQuery1;
+                    searchResultsTextView.setText(getResources().getString(R.string.search_query, searchQuery));
+                    searchResultsTextView.setVisibility(View.VISIBLE);
                 } else {
                     Toast.makeText(getApplicationContext(), "Error fetching questions!", Toast.LENGTH_SHORT).show();
                 }
@@ -375,5 +406,56 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    /**
+     * Send share api call
+     */
+    private void shareSearchQuery(String email) {
+        String url = "blissrecruitment://questions?question_filter=" + searchQuery;
+
+        Call shareSearchCall = apiInterface.share(email, url);
+        shareSearchCall.enqueue(new Callback<Share>() {
+            @Override
+            public void onResponse(@NonNull Call<Share> call, @NonNull Response<Share> response) {
+                Share s = response.body();
+                if (s != null) {
+                    Toast.makeText(getApplicationContext(), s.getStatus(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Share> call, @NonNull Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Show share dialog
+     */
+    private void showShareDialog() {
+        final EditText editText = new EditText(this);
+        editText.setHint("Destination email");
+        editText.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle("Share this search?")
+                .setMessage("Search query: " + searchQuery + "\nPlease enter destination email")
+                .setView(editText)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String email = editText.getText().toString();
+                        shareSearchQuery(email);
+                    }
+                })
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do nothing
+                    }
+                })
+                .setIcon(android.R.drawable.ic_menu_share)
+                .show();
     }
 }
