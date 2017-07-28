@@ -2,47 +2,32 @@ package com.arop.bliss_app;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.arop.bliss_app.adapters.ChoicesAdapter;
 import com.arop.bliss_app.api.APIInterface;
 import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.apiObjects.Question;
 import com.arop.bliss_app.apiObjects.Share;
 import com.arop.bliss_app.networkUtils.ConnectivityEvent;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -63,6 +48,7 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
     APIInterface apiInterface;
     private EventBus bus = EventBus.getDefault();
     private Dialog dialog;
+    private Button voteButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +66,20 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
         qt = (Question) getIntent().getSerializableExtra("Question");
         setView();
         setRecyclerView();
+
+        voteButton = (Button) findViewById(R.id.voteButton);
+        voteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int i = ((ChoicesAdapter) mAdapter).getSelectedChoice();
+                if (i >= 0) {
+                    qt.addVote(qt.getChoices().get(i).getName());
+                    vote(qt);
+                } else {
+                    Toast.makeText(ShowQuestionDetailsActivity.this, "Please select an option!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // Register as a subscriber
         bus.register(this);
@@ -119,19 +119,17 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
      * @param q question
      */
     public void vote(Question q) {
-        Call getQuestionsCall = apiInterface.vote(q.getId(), q);
-        getQuestionsCall.enqueue(new Callback<Question>() {
+        Call voteCall = apiInterface.vote(q.getId(), q);
+        voteCall.enqueue(new Callback<Question>() {
             @Override
-            public void onResponse(Call<Question> call, Response<Question> response) {
-                //TODO check bad votes
-                Question qr = response.body();
-                qt = qr;
+            public void onResponse(@NonNull Call<Question> call, @NonNull Response<Question> response) {
+                qt = response.body();
                 setView();
                 setRecyclerView();
             }
 
             @Override
-            public void onFailure(Call<Question> call, Throwable t) {
+            public void onFailure(@NonNull Call<Question> call, @NonNull Throwable t) {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

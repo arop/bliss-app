@@ -11,4 +11,5 @@
     <string name="_2015">2015</string>
     <string name="action_share">Share</string>
     <string name="search_query">Showing results for: %1$s</string>
+    <string name="vote">Vote</string>
 </resources>

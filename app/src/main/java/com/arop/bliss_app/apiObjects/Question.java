@@ -30,7 +30,7 @@ public class Question implements Serializable {
     @SerializedName("published_at")
     private String date;
     @SerializedName("choices")
-    private List<QuestionChoice> choices;
+    private ArrayList<QuestionChoice> choices;
 
     public Question(int id, String img, String thumb, String qt, String d) {
         this.id = id;
@@ -39,14 +39,6 @@ public class Question implements Serializable {
         question = qt;
         date = d;
         choices = new ArrayList<>();
-    }
-
-    public void addQuestionChoice(QuestionChoice qc) {
-        choices.add(qc);
-    }
-
-    public void addQuestionChoice(String choice, int votes) {
-        choices.add(new QuestionChoice(choice,votes));
     }
 
     public int getId() {
@@ -73,7 +65,7 @@ public class Question implements Serializable {
         return date;
     }
 
-    public List<QuestionChoice> getChoices() {
+    public ArrayList<QuestionChoice> getChoices() {
         return choices;
     }
 
@@ -86,6 +78,10 @@ public class Question implements Serializable {
         }
     }
 
+    /**
+     * Gets date in a presentable format
+     * @return formatted date
+     */
     public String getFormattedDate() {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
         DateFormat df1 = DateFormat.getDateTimeInstance(DateFormat.FULL,DateFormat.SHORT, Locale.getDefault());

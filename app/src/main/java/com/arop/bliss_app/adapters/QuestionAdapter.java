@@ -1,4 +1,4 @@
-package com.arop.bliss_app;
+package com.arop.bliss_app.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.arop.bliss_app.R;
+import com.arop.bliss_app.ShowQuestionDetailsActivity;
 import com.arop.bliss_app.apiObjects.Question;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -36,7 +38,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    QuestionAdapter(ArrayList<Question> f, Context c) {
+    public QuestionAdapter(ArrayList<Question> f, Context c) {
         mDatasetQuestions = f;
         context = c;
     }
@@ -81,9 +83,10 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
 
     /**
      * Set questions
+     *
      * @param dq questions list
      */
-    void setmDatasetQuestions(ArrayList<Question> dq) {
+    public void setmDatasetQuestions(ArrayList<Question> dq) {
         this.mDatasetQuestions = dq;
         this.notifyDataSetChanged();
     }

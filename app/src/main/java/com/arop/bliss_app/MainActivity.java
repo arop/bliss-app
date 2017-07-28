@@ -27,6 +27,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.arop.bliss_app.adapters.QuestionAdapter;
 import com.arop.bliss_app.api.RetrofitClient;
 import com.arop.bliss_app.api.APIInterface;
 import com.arop.bliss_app.apiObjects.Health;
@@ -62,14 +63,14 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<Question> questions, searchQuestions;
-    private String searchQuery;
+    private String searchQuery = "";
     private FloatingActionButton shareSearchFab;
     private TextView searchResultsTextView;
 
     private ImageLoader imageLoader;
 
     private EventBus bus = EventBus.getDefault();
-    Dialog connectivityDialog;
+    private Dialog connectivityDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
 
         questions = new ArrayList<>();
         searchQuestions = new ArrayList<>();
-        searchQuery = "";
 
         searchResultsTextView = (TextView) findViewById(R.id.searchResultsTextView);
 
