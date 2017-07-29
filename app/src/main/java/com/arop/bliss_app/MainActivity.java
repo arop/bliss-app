@@ -254,8 +254,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onClose() {
                 shareSearchFab.setVisibility(View.GONE);
-                searchResultsTextView.setVisibility(View.GONE);
-                ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
+                if(searchResultsTextView.getVisibility() == View.VISIBLE) {
+                    ((QuestionAdapter) mAdapter).setmDatasetQuestions(questions);
+                    searchResultsTextView.setVisibility(View.GONE);
+                }
                 searchView.onActionViewCollapsed();
                 searchQuestions.clear();
                 return false;
@@ -298,8 +300,10 @@ public class MainActivity extends AppCompatActivity {
             connectivityDialog.show();
         else connectivityDialog.dismiss();
 
-        if (startedWithNoConnectivity)
+        if (startedWithNoConnectivity) {
             checkHealth();
+            startedWithNoConnectivity = false;
+        }
     }
 
     /**

@@ -199,6 +199,7 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
      */
 
     public void vote(Question q) {
+        voteButton.setEnabled(false);
         Call voteCall = apiInterface.vote(q.getId(), q);
         voteCall.enqueue(new Callback<Question>() {
             @Override
@@ -206,12 +207,14 @@ public class ShowQuestionDetailsActivity extends AppCompatActivity {
                 qt = response.body();
                 setView();
                 setRecyclerView();
+                voteButton.setEnabled(true);
                 MainActivity.updateQuestion(qt);
             }
 
             @Override
             public void onFailure(@NonNull Call<Question> call, @NonNull Throwable t) {
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                voteButton.setEnabled(true);
             }
         });
     }
