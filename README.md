@@ -1,4 +1,4 @@
-# Bliss Applications recruitment app
+# Bliss Applications app
 
 Android app, developed in Android Studio
 
