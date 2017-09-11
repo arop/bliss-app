@@ -2,4 +2,4 @@
 
 Android app, developed in Android Studio
 
-To setup, compile and run please install **Android Studio** and click on "Run"
+Used libraries: Retrofit, Universal Image Loader, Event Bus
